@@ -93,11 +93,13 @@ def django_db_setup(
         )
 
     def teardown_database():
-        with django_db_blocker.unblock():
-            teardown_databases(
-                db_cfg,
-                verbosity=pytest.config.option.verbose,
-            )
+        # Do not teardown db
+        pass
+        #with django_db_blocker.unblock():
+        #    teardown_databases(
+        #        db_cfg,
+        #        verbosity=pytest.config.option.verbose,
+        #    )
 
     if not django_db_keepdb:
         request.addfinalizer(teardown_database)
@@ -121,7 +123,8 @@ def _django_db_fixture_helper(transactional, request, django_db_blocker):
 
     test_case = django_case(methodName='__init__')
     test_case._pre_setup()
-    request.addfinalizer(test_case._post_teardown)
+    # Removing call to teardown db
+    #request.addfinalizer(test_case._post_teardown)
 
 
 def _disable_native_migrations():
