@@ -333,11 +333,11 @@ def django_test_environment(request):
     if django_settings_is_configured():
         _setup_django()
         from django.conf import settings as dj_settings
-        from django.test.utils import (setup_test_environment,
-                                       teardown_test_environment)
+        #from django.test.utils import (setup_test_environment,
+        #                               teardown_test_environment)
         dj_settings.DEBUG = False
-        setup_test_environment()
-        request.addfinalizer(teardown_test_environment)
+        #setup_test_environment()
+        #request.addfinalizer(teardown_test_environment)
 
 
 @pytest.fixture(scope='session')
@@ -420,8 +420,8 @@ def _dj_autoclear_mailbox():
     if not django_settings_is_configured():
         return
 
-    from django.core import mail
-    del mail.outbox[:]
+    #from django.core import mail
+    #del mail.outbox[:]
 
 
 @pytest.fixture(scope='function')
