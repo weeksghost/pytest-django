@@ -71,16 +71,20 @@ Tests requiring multiple databases
 ----------------------------------
 
 Currently ``pytest-django`` does not specifically support Django's
-multi-database support.  You can however use normal Django
-``TestCase`` instances to use it's `multi_db
-<https://docs.djangoproject.com/en/1.9/topics/testing/advanced/#tests-and-multiple-databases>`_
-support.
+multi-database support.
+
+You can however use normal :class:`~django.test.TestCase` instances to use its
+:ref:`django:topics-testing-advanced-multidb` support.
+In particular, if your database is configured for replication, be sure to read
+about :ref:`django:topics-testing-primaryreplica`.
 
 If you have any ideas about the best API to support multiple databases
 directly in ``pytest-django`` please get in touch, we are interested
 in eventually supporting this but unsure about simply following
 Django's approach.
 
+See `https://github.com/pytest-dev/pytest-django/pull/431` for an idea /
+discussion to approach this.
 
 ``--reuse-db`` - reuse the testing database between test runs
 --------------------------------------------------------------
@@ -229,6 +233,16 @@ command line options.
 
 This fixture is by default requested from :fixture:`django_db_setup`.
 
+django_db_createdb
+""""""""""""""""""
+
+.. fixture:: django_db_createdb
+
+Returns whether or not the database is to be re-created before running any
+tests.
+
+This fixture is by default requested from :fixture:`django_db_setup`.
+
 django_db_blocker
 """""""""""""""""
 
@@ -236,7 +250,7 @@ django_db_blocker
 
 .. warning::
     It does not manage transactions and changes made to the database will not
-    be automatically restored. Using the :func:`pytest.mark.django_db` marker
+    be automatically restored. Using the ``pytest.mark.django_db`` marker
     or :fixture:`db` fixture, which wraps database changes in a transaction and
     restores the state is generally the thing you want in tests. This marker
     can be used when you are trying to influence the way the database is
@@ -405,8 +419,8 @@ Create the test database from a custom SQL script
 
 You can replace the :fixture:`django_db_setup` fixture and run any code in its
 place. This includes creating your database by hand by running a SQL script
-directly. This example shows how sqlite3's executescript method. In more a more
-general use cases you probably want to load the SQL statements from a file or
+directly. This example shows sqlite3's executescript method. In a more
+general use case, you probably want to load the SQL statements from a file or
 invoke the ``psql`` or the ``mysql`` command line tool.
 
 Put this in ``conftest.py``::
@@ -424,6 +438,11 @@ Put this in ``conftest.py``::
                 CREATE TABLE theapp_item (id, name);
                 INSERT INTO theapp_item (name) VALUES ('created from a sql script');
                 ''')
+
+.. warning::
+    This snippet shows ``cursor().executescript()`` which is `sqlite` specific, for
+    other database engines this method might differ. For instance, psycopg2 uses
+    ``cursor().execute()``.
 
 
 Use a read only database
