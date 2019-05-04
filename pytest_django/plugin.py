@@ -41,6 +41,8 @@ SETTINGS_MODULE_ENV = 'DJANGO_SETTINGS_MODULE'
 CONFIGURATION_ENV = 'DJANGO_CONFIGURATION'
 INVALID_TEMPLATE_VARS_ENV = 'FAIL_INVALID_TEMPLATE_VARS'
 
+PY2 = sys.version_info[0] == 2
+
 
 # ############### pytest hooks ################
 
@@ -258,7 +260,7 @@ def pytest_configure():
     _setup_django()
 
 
-def _method_is_defined_at_leaf(cls, method_name):
+def _classmethod_is_defined_at_leaf(cls, method_name):
     super_method = None
 
     for base_cls in cls.__bases__:
@@ -268,7 +270,17 @@ def _method_is_defined_at_leaf(cls, method_name):
     assert super_method is not None, (
         '%s could not be found in base class' % method_name)
 
-    return getattr(cls, method_name).__func__ is not super_method.__func__
+    method = getattr(cls, method_name)
+
+    try:
+        f = method.__func__
+    except AttributeError:
+        pytest.fail('%s.%s should be a classmethod' % (cls, method_name))
+    if PY2 and not (inspect.ismethod(method) and
+                    inspect.isclass(method.__self__) and
+                    issubclass(cls, method.__self__)):
+        pytest.fail('%s.%s should be a classmethod' % (cls, method_name))
+    return f is not super_method.__func__
 
 
 _disabled_classmethods = {}
@@ -279,10 +291,12 @@ def _disable_class_methods(cls):
         return
 
     _disabled_classmethods[cls] = (
-        cls.setUpClass,
-        _method_is_defined_at_leaf(cls, 'setUpClass'),
-        cls.tearDownClass,
-        _method_is_defined_at_leaf(cls, 'tearDownClass'),
+        # Get the classmethod object (not the resulting bound method),
+        # otherwise inheritence will be broken when restoring.
+        cls.__dict__.get('setUpClass'),
+        _classmethod_is_defined_at_leaf(cls, 'setUpClass'),
+        cls.__dict__.get('tearDownClass'),
+        _classmethod_is_defined_at_leaf(cls, 'tearDownClass'),
     )
 
     cls.setUpClass = types.MethodType(lambda cls: None, cls)
@@ -333,11 +347,11 @@ def django_test_environment(request):
     if django_settings_is_configured():
         _setup_django()
         from django.conf import settings as dj_settings
-        #from django.test.utils import (setup_test_environment,
-        #                               teardown_test_environment)
+        from django.test.utils import (setup_test_environment,
+                                       teardown_test_environment)
         dj_settings.DEBUG = False
-        #setup_test_environment()
-        #request.addfinalizer(teardown_test_environment)
+        setup_test_environment()
+        request.addfinalizer(teardown_test_environment)
 
 
 @pytest.fixture(scope='session')
@@ -367,10 +381,10 @@ def _django_db_marker(request):
     This will dynamically request the ``db`` or ``transactional_db``
     fixtures as required by the django_db marker.
     """
-    marker = request.keywords.get('django_db', None)
+    marker = request.node.get_closest_marker('django_db')
     if marker:
-        validate_django_db(marker)
-        if marker.transaction:
+        transaction = validate_django_db(marker)
+        if transaction:
             getfixturevalue(request, 'transactional_db')
         else:
             getfixturevalue(request, 'db')
@@ -436,7 +450,7 @@ def mailoutbox(monkeypatch, _dj_autoclear_mailbox):
 @pytest.fixture(autouse=True, scope='function')
 def _django_set_urlconf(request):
     """Apply the @pytest.mark.urls marker, internal to pytest-django."""
-    marker = request.keywords.get('urls', None)
+    marker = request.node.get_closest_marker('urls')
     if marker:
         skip_if_no_django()
         import django.conf
@@ -446,9 +460,9 @@ def _django_set_urlconf(request):
             # Removed in Django 2.0
             from django.core.urlresolvers import clear_url_caches, set_urlconf
 
-        validate_urls(marker)
+        urls = validate_urls(marker)
         original_urlconf = django.conf.settings.ROOT_URLCONF
-        django.conf.settings.ROOT_URLCONF = marker.urls
+        django.conf.settings.ROOT_URLCONF = urls
         clear_url_caches()
         set_urlconf(None)
 
@@ -645,8 +659,8 @@ def validate_django_db(marker):
     the marker which will have the correct value.
     """
     def apifun(transaction=False):
-        marker.transaction = transaction
-    apifun(*marker.args, **marker.kwargs)
+        return transaction
+    return apifun(*marker.args, **marker.kwargs)
 
 
 def validate_urls(marker):
@@ -656,5 +670,5 @@ def validate_urls(marker):
     marker which will have the correct value.
     """
     def apifun(urls):
-        marker.urls = urls
-    apifun(*marker.args, **marker.kwargs)
+        return urls
+    return apifun(*marker.args, **marker.kwargs)
