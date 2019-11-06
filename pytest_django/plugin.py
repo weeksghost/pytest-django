@@ -368,13 +368,6 @@ def _classmethod_is_defined_at_leaf(cls, method_name):
     try:
         f = method.__func__
     except AttributeError:
-<<<<<<< HEAD
-        pytest.fail('%s.%s should be a classmethod' % (cls, method_name))
-    if PY2 and not (inspect.ismethod(method) and
-                    inspect.isclass(method.__self__) and
-                    issubclass(cls, method.__self__)):
-        pytest.fail('%s.%s should be a classmethod' % (cls, method_name))
-=======
         pytest.fail("%s.%s should be a classmethod" % (cls, method_name))
     if PY2 and not (
         inspect.ismethod(method)
@@ -382,7 +375,6 @@ def _classmethod_is_defined_at_leaf(cls, method_name):
         and issubclass(cls, method.__self__)
     ):
         pytest.fail("%s.%s should be a classmethod" % (cls, method_name))
->>>>>>> 62a3b8d30b459765369de43e81ed2a1573d5ee41
     return f is not super_method.__func__
 
 
@@ -395,19 +387,11 @@ def _disable_class_methods(cls):
 
     _disabled_classmethods[cls] = (
         # Get the classmethod object (not the resulting bound method),
-<<<<<<< HEAD
-        # otherwise inheritence will be broken when restoring.
-        cls.__dict__.get('setUpClass'),
-        _classmethod_is_defined_at_leaf(cls, 'setUpClass'),
-        cls.__dict__.get('tearDownClass'),
-        _classmethod_is_defined_at_leaf(cls, 'tearDownClass'),
-=======
         # otherwise inheritance will be broken when restoring.
         cls.__dict__.get("setUpClass"),
         _classmethod_is_defined_at_leaf(cls, "setUpClass"),
         cls.__dict__.get("tearDownClass"),
         _classmethod_is_defined_at_leaf(cls, "tearDownClass"),
->>>>>>> 62a3b8d30b459765369de43e81ed2a1573d5ee41
     )
 
     cls.setUpClass = types.MethodType(lambda cls: None, cls)
@@ -518,13 +502,6 @@ def _django_db_marker(request):
     This will dynamically request the ``db``, ``transactional_db`` or
     ``django_db_reset_sequences`` fixtures as required by the django_db marker.
     """
-<<<<<<< HEAD
-    marker = request.node.get_closest_marker('django_db')
-    if marker:
-        transaction = validate_django_db(marker)
-        if transaction:
-            getfixturevalue(request, 'transactional_db')
-=======
     marker = request.node.get_closest_marker("django_db")
     if marker:
         transaction, reset_sequences = validate_django_db(marker)
@@ -532,7 +509,6 @@ def _django_db_marker(request):
             request.getfixturevalue("django_db_reset_sequences")
         elif transaction:
             request.getfixturevalue("transactional_db")
->>>>>>> 62a3b8d30b459765369de43e81ed2a1573d5ee41
         else:
             request.getfixturevalue("db")
 
@@ -590,14 +566,8 @@ def _dj_autoclear_mailbox():
     if not django_settings_is_configured():
         return
 
-<<<<<<< HEAD
     #from django.core import mail
     #del mail.outbox[:]
-=======
-    from django.core import mail
-
-    del mail.outbox[:]
->>>>>>> 62a3b8d30b459765369de43e81ed2a1573d5ee41
 
 
 @pytest.fixture(scope="function")
@@ -625,11 +595,7 @@ def django_mail_dnsname(monkeypatch):
 @pytest.fixture(autouse=True, scope="function")
 def _django_set_urlconf(request):
     """Apply the @pytest.mark.urls marker, internal to pytest-django."""
-<<<<<<< HEAD
-    marker = request.node.get_closest_marker('urls')
-=======
     marker = request.node.get_closest_marker("urls")
->>>>>>> 62a3b8d30b459765369de43e81ed2a1573d5ee41
     if marker:
         skip_if_no_django()
         import django.conf
