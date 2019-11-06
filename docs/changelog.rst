@@ -1,6 +1,257 @@
 Changelog
 =========
 
+3.6.0 (2019-10-17)
+------------------
+
+Features
+^^^^^^^^
+
+* Rename test databases when running parallel Tox (#678, #680)
+
+Bugfixes
+^^^^^^^^
+
+* Django unittests: restore "debug" function (#769, #771)
+
+Misc
+^^^^
+
+* Improve/harden internal tests / infrastructure.
+
+
+3.5.1 (2019-06-29)
+------------------
+
+Bugfixes
+^^^^^^^^
+
+* Fix compatibility with pytest 5.x (#751)
+
+3.5.0 (2019-06-03)
+------------------
+
+Features
+^^^^^^^^
+
+* Run tests in the same order as Django (#223)
+
+* Use verbosity=0 with disabled migrations (#729, #730)
+
+Bugfixes
+^^^^^^^^
+
+* django_db_setup: warn instead of crash with teardown errors (#726)
+
+Misc
+^^^^
+* tests: fix test_sqlite_database_renamed (#739, #741)
+
+* tests/conftest.py: move import of db_helpers (#737)
+
+* Cleanup/improve coverage, mainly with tests (#706)
+
+* Slightly revisit unittest handling (#740)
+
+
+3.4.8 (2019-02-26)
+------------------
+
+Bugfixes
+^^^^^^^^
+
+* Fix DB renaming fixture for Multi-DB environment with SQLite (#679)
+
+3.4.7 (2019-02-03)
+------------------
+
+Bugfixes
+^^^^^^^^
+
+* Fix disabling/handling of unittest methods with pytest 4.2+ (#700)
+
+3.4.6 (2019-02-01)
+------------------
+
+Bugfixes
+^^^^^^^^
+
+* django_find_project: add cwd as fallback always (#690)
+
+Misc
+^^^^
+
+* Enable tests for Django 2.2 and add classifier (#693)
+* Disallow pytest 4.2.0 in ``install_requires`` (#697)
+
+3.4.5 (2019-01-07)
+------------------
+
+Bugfixes
+^^^^^^^^
+
+* Use ``request.config`` instead of ``pytest.config`` (#677)
+* :fixture:`admin_user`: handle "email" username_field (#676)
+
+Misc
+^^^^
+
+* Minor doc fixes (#674)
+* tests: fix for pytest 4 (#675)
+
+3.4.4 (2018-11-13)
+------------------
+
+Bugfixes
+^^^^^^^^
+
+* Refine the django.conf module check to see if the settings really are
+  configured (#668).
+* Avoid crash after OSError during Django path detection (#664).
+
+Features
+^^^^^^^^
+
+* Add parameter info to fixture assert_num_queries to display additional message on failure (#663).
+
+Docs
+^^^^
+
+* Improve doc for django_assert_num_queries/django_assert_max_num_queries.
+* Add warning about sqlite specific snippet + fix typos (#666).
+
+Misc
+^^^^
+
+* MANIFEST.in: include tests for downstream distros (#653).
+* Ensure that the LICENSE file is included in wheels (#665).
+* Run black on source.
+
+
+3.4.3 (2018-09-16)
+------------------
+
+Bugfixes
+^^^^^^^^
+
+* Fix OSError with arguments containing ``::`` on Windows (#641).
+
+3.4.2 (2018-08-20)
+------------------
+
+Bugfixes
+^^^^^^^^
+
+* Changed dependency for pathlib to pathlib2 (#636).
+* Fixed code for inserting the project to sys.path with pathlib to use an
+  absolute path, regression in 3.4.0 (#637, #638).
+
+3.4.0 (2018-08-16)
+------------------
+
+Features
+^^^^^^^^
+
+* Added new fixture :fixture:`django_assert_max_num_queries` (#547).
+* Added support for ``connection`` and returning the wrapped context manager
+  with :fixture:`django_assert_num_queries` (#547).
+* Added support for resetting sequences via
+  :fixture:`django_db_reset_sequences` (#619).
+
+Bugfixes
+^^^^^^^^
+
+* Made sure to not call django.setup() multiple times (#629, #531).
+
+Compatibility
+^^^^^^^^^^^^^
+
+* Removed py dependency, use pathlib instead (#631).
+
+3.3.3 (2018-07-26)
+------------------
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed registration of :py:func:`~pytest.mark.ignore_template_errors` marker,
+  which is required with ``pytest --strict`` (#609).
+* Fixed another regression with unittest (#624, #625).
+
+Docs
+^^^^
+
+* Use sphinx_rtf_theme (#621).
+* Minor fixes.
+
+3.3.2 (2018-06-21)
+------------------
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed test for classmethod with Django TestCases again (#618,
+  introduced in #598 (3.3.0)).
+
+Compatibility
+^^^^^^^^^^^^^
+
+* Support Django 2.1 (no changes necessary) (#614).
+
+3.3.0 (2018-06-15)
+------------------
+
+Features
+^^^^^^^^
+
+* Added new fixtures ``django_mail_dnsname`` and ``django_mail_patch_dns``,
+  used by ``mailoutbox`` to monkeypatch the ``DNS_NAME`` used in
+  :py:mod:`django.core.mail` to improve performance and
+  reproducibility.
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed test for classmethod with Django TestCases (#597, #598).
+* Fixed RemovedInPytest4Warning: MarkInfo objects are deprecated (#596, #603)
+* Fixed scope of overridden settings with live_server fixture: previously they
+  were visible to following tests (#612).
+
+Compatibility
+^^^^^^^^^^^^^
+
+* The required `pytest` version changed from >=2.9 to >=3.6.
+
+3.2.1
+-----
+
+* Fixed automatic deployment to PyPI.
+
+3.2.0
+-----
+
+Features
+^^^^^^^^
+
+* Added new fixture `django_assert_num_queries` for testing the number of
+  database queries (#387).
+* `--fail-on-template-vars` has been improved and should now return
+  full/absolute path (#470).
+* Support for setting the live server port (#500).
+* unittest: help with setUpClass not being a classmethod (#544).
+
+Bug fixes
+^^^^^^^^^
+
+* Fix --reuse-db and --create-db not working together (#411).
+* Numerous fixes in the documentation. These should not go unnoticed 🌟
+
+Compatibility
+^^^^^^^^^^^^^
+
+* Support for Django 2.0 has been added.
+* Support for Django before 1.8 has been dropped.
+
 3.1.2
 -----
 
@@ -94,7 +345,7 @@ Compatibility
   database access was prevented on the cursor level. To be safer and prevent
   more cases, it is now prevented at the connection level. If you previously
   had tests which interacted with the databases without a database cursor, you
-  will need to mark them with the :func:`pytest.mark.django_db` marker or
+  will need to mark them with the ``pytest.mark.django_db`` marker or
   request the ``db`` fixture.
 
 * The previously undocumented internal fixtures ``_django_db_setup``,
